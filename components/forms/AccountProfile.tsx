@@ -5,6 +5,7 @@ import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { usePathname, useRouter } from "next/navigation";
 
 // components
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useUploadThing } from "@/lib/uploadthing";
 import { UserValidation } from "@/lib/validations/user";
 import { isBase64Image } from "@/lib/utils";
+import { updateUser } from "@/lib/actions/user.actions";
 
 interface Props {
   user: {
@@ -38,6 +40,9 @@ interface Props {
 }
 
 const AccountProfile = ({ user, btnTitle }: Props) => {
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [files, setFiles] = useState<File[]>([]);
   const { startUpload } = useUploadThing("media");
 
@@ -92,7 +97,20 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
     // ✅ This will be type-safe and validated.
 
     // TODO: Update user profile
-    console.log(values);
+    await updateUser({
+      userId: user.id,
+      username: values.username,
+      name: values.name,
+      bio: values.bio,
+      image: values.profile_photo,
+      path: pathname,
+    });
+
+    if (pathname === "/profile/edit") {
+      router.back();
+    } else {
+      router.push("/");
+    }
   };
 
   return (
@@ -135,6 +153,7 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
                   onChange={(e) => handleImage(e, field.onChange)}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -148,7 +167,8 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
               </FormLabel>
               <FormControl>
                 <Input className="account-form_input no-focus" {...field} />
-              </FormControl>
+              </FormControl>{" "}
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -163,6 +183,7 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
               <FormControl>
                 <Input className="account-form_input no-focus" {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -181,6 +202,7 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
